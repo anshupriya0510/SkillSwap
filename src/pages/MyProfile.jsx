@@ -1,15 +1,231 @@
-function MyProfile() {
+import { useState } from 'react';
+import Button from '../components/Button';
+import SkillBadge from '../components/SkillBadge';
+
+function MyProfile({ currentUser, onSaveProfile }) {
+  const [formData, setFormData] = useState({
+    name: currentUser.name || '',
+    role: currentUser.role || '',
+    location: currentUser.location || '',
+    bio: currentUser.bio || '',
+    skillsToTeachInput: currentUser.skillsToTeach ? currentUser.skillsToTeach.join(', ') : '',
+    skillsToLearnInput: currentUser.skillsToLearn ? currentUser.skillsToLearn.join(', ') : '',
+    experienceLevel: currentUser.experienceLevel || '',
+    availability: currentUser.availability || '',
+  });
+
+  const [savedSuccess, setSavedSuccess] = useState(false);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    // Convert comma-separated string inputs into cleaned string arrays
+    const skillsToTeach = formData.skillsToTeachInput
+      .split(',')
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
+
+    const skillsToLearn = formData.skillsToLearnInput
+      .split(',')
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
+
+    const updatedProfile = {
+      ...currentUser,
+      name: formData.name,
+      role: formData.role,
+      location: formData.location,
+      bio: formData.bio,
+      skillsToTeach,
+      skillsToLearn,
+      experienceLevel: formData.experienceLevel,
+      availability: formData.availability,
+    };
+
+    onSaveProfile(updatedProfile);
+    setSavedSuccess(true);
+
+    setTimeout(() => {
+      setSavedSuccess(false);
+    }, 2500);
+  };
+
   return (
-    <div className="p-6 max-w-5xl mx-auto">
-      <div className="bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-xl shadow-xl">
-        <div className="inline-flex items-center space-x-2 bg-purple-500/10 border border-purple-500/20 px-3 py-1 rounded-full text-xs font-medium text-purple-300 mb-4">
-          <span>Phase 2 Active Route</span>
+    <div className="max-w-4xl mx-auto space-y-8 py-4 px-2">
+      {/* Header Banner */}
+      <div className="space-y-3">
+        <div className="inline-flex items-center space-x-2 bg-purple-500/10 border border-purple-500/20 px-3 py-1 rounded-full text-xs font-semibold text-purple-300">
+          <span>Personal Dashboard</span>
         </div>
-        <h1 className="text-3xl font-bold text-white mb-2">My Profile</h1>
-        <p className="text-gray-400 leading-relaxed">
-          Manage your skills, bio, availability, and preferences. Editable profile features will be added in Phase 10.
+        <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
+          My <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-300 to-pink-400">Profile & Settings</span>
+        </h1>
+        <p className="text-gray-300 text-sm max-w-xl">
+          Edit your public details, expertise, learning goals, and availability preferences.
         </p>
       </div>
+
+      {savedSuccess && (
+        <div className="bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 px-6 py-4 rounded-3xl flex items-center justify-between shadow-xl animate-fadeIn">
+          <div className="flex items-center space-x-3">
+            <svg className="w-6 h-6 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            <span className="text-sm font-semibold">Profile updated and saved to local storage!</span>
+          </div>
+        </div>
+      )}
+
+      {/* Main Profile Form */}
+      <form onSubmit={handleSubmit} className="bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-xl shadow-2xl space-y-6">
+        {/* Avatar & Header Preview */}
+        <div className="flex items-center space-x-5 pb-6 border-b border-white/10">
+          <img
+            src={currentUser.avatar}
+            alt={currentUser.name}
+            className="w-20 h-20 rounded-3xl object-cover border-2 border-purple-400/40 shadow-xl"
+          />
+          <div>
+            <h2 className="text-2xl font-bold text-white">{formData.name || 'Your Name'}</h2>
+            <p className="text-xs text-purple-300 font-medium">{formData.role || 'Your Title'}</p>
+            <p className="text-[11px] text-gray-400 mt-1">{formData.location || 'Your Location'}</p>
+          </div>
+        </div>
+
+        {/* Basic Info Inputs */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <label className="text-xs font-semibold text-gray-300 uppercase tracking-wider block">Full Name</label>
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              required
+              className="w-full bg-[#181320] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-purple-400"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-semibold text-gray-300 uppercase tracking-wider block">Role / Title</label>
+            <input
+              type="text"
+              name="role"
+              value={formData.role}
+              onChange={handleChange}
+              required
+              className="w-full bg-[#181320] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-purple-400"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <label className="text-xs font-semibold text-gray-300 uppercase tracking-wider block">Location</label>
+            <input
+              type="text"
+              name="location"
+              value={formData.location}
+              onChange={handleChange}
+              required
+              className="w-full bg-[#181320] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-purple-400"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-semibold text-gray-300 uppercase tracking-wider block">Experience Level</label>
+            <input
+              type="text"
+              name="experienceLevel"
+              value={formData.experienceLevel}
+              onChange={handleChange}
+              placeholder="e.g. Intermediate (3 years)"
+              className="w-full bg-[#181320] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-purple-400"
+            />
+          </div>
+        </div>
+
+        {/* Bio Input */}
+        <div className="space-y-2">
+          <label className="text-xs font-semibold text-gray-300 uppercase tracking-wider block">About / Bio</label>
+          <textarea
+            name="bio"
+            value={formData.bio}
+            onChange={handleChange}
+            rows="3"
+            required
+            className="w-full bg-[#181320] border border-white/10 rounded-2xl p-4 text-sm text-white focus:outline-none focus:border-purple-400"
+          />
+        </div>
+
+        {/* Skills Tag Edit Sections */}
+        <div className="space-y-6 pt-4 border-t border-white/10">
+          <div className="space-y-2">
+            <label className="text-xs font-semibold text-emerald-400 uppercase tracking-wider block">
+              Skills You Can Teach (Comma-separated)
+            </label>
+            <input
+              type="text"
+              name="skillsToTeachInput"
+              value={formData.skillsToTeachInput}
+              onChange={handleChange}
+              placeholder="e.g. React, JavaScript, Git, Tailwind"
+              className="w-full bg-[#181320] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-purple-400"
+            />
+            {/* Live Tag Preview */}
+            <div className="flex flex-wrap gap-2 pt-1">
+              {formData.skillsToTeachInput.split(',').map((skill, idx) => (
+                skill.trim() && <SkillBadge key={idx} name={skill.trim()} size="small" active={true} />
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-semibold text-purple-300 uppercase tracking-wider block">
+              Skills You Want to Learn (Comma-separated)
+            </label>
+            <input
+              type="text"
+              name="skillsToLearnInput"
+              value={formData.skillsToLearnInput}
+              onChange={handleChange}
+              placeholder="e.g. AWS, Docker, Python, UI/UX"
+              className="w-full bg-[#181320] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-purple-400"
+            />
+            {/* Live Tag Preview */}
+            <div className="flex flex-wrap gap-2 pt-1">
+              {formData.skillsToLearnInput.split(',').map((skill, idx) => (
+                skill.trim() && <SkillBadge key={idx} name={skill.trim()} size="small" active={false} />
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Availability */}
+        <div className="space-y-2">
+          <label className="text-xs font-semibold text-gray-300 uppercase tracking-wider block">Weekly Availability</label>
+          <input
+            type="text"
+            name="availability"
+            value={formData.availability}
+            onChange={handleChange}
+            placeholder="e.g. 8-10 hrs/week (Evenings & Weekends)"
+            className="w-full bg-[#181320] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-purple-400"
+          />
+        </div>
+
+        {/* Submit Button */}
+        <div className="pt-4 border-t border-white/10 flex justify-end">
+          <Button variant="primary" type="submit">
+            Save Profile Changes
+          </Button>
+        </div>
+      </form>
     </div>
   );
 }

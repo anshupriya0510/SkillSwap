@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 
-function Sidebar() {
+function Sidebar({ currentUser }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navItems = [
@@ -135,15 +135,20 @@ function Sidebar() {
         </nav>
 
         {/* Bottom Profile Preview Card (Helios Style) */}
-        <div className="mt-auto bg-white/5 border border-white/10 rounded-2xl p-3.5 flex items-center space-x-3">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-purple-500 to-pink-400 flex items-center justify-center text-white font-bold text-xs shadow-md">
-            ME
-          </div>
+        <NavLink
+          to="/my-profile"
+          className="mt-auto bg-white/5 border border-white/10 rounded-2xl p-3.5 flex items-center space-x-3 hover:border-purple-400/40 transition-colors"
+        >
+          <img
+            src={currentUser?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=250'}
+            alt={currentUser?.name}
+            className="w-9 h-9 rounded-full object-cover border border-purple-400/40 shadow-sm"
+          />
           <div className="overflow-hidden">
-            <p className="text-xs font-semibold text-white truncate">Rahul Sharma</p>
-            <p className="text-[10px] text-purple-300 truncate">React Developer</p>
+            <p className="text-xs font-semibold text-white truncate">{currentUser?.name || 'Rahul Sharma'}</p>
+            <p className="text-[10px] text-purple-300 truncate">{currentUser?.role || 'Frontend Developer'}</p>
           </div>
-        </div>
+        </NavLink>
       </aside>
     </>
   );
