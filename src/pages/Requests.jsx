@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Button from '../components/Button';
+import Avatar from '../components/Avatar';
 
 function Requests({ requests, onUpdateRequestStatus }) {
   const [activeTab, setActiveTab] = useState('received');
@@ -80,11 +81,7 @@ function Requests({ requests, onUpdateRequestStatus }) {
                 className="bg-white/5 border border-white/10 rounded-3xl p-6 backdrop-blur-xl shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6 hover:border-purple-400/30 transition-all"
               >
                 <div className="flex items-start space-x-4">
-                  <img
-                    src={req.fromUser.avatar}
-                    alt={req.fromUser.name}
-                    className="w-14 h-14 rounded-2xl object-cover border border-white/20 shadow-md shrink-0"
-                  />
+                  <Avatar src={req.fromUser.avatar} name={req.fromUser.name} size="md" />
                   <div className="space-y-2">
                     <div className="flex items-center space-x-3">
                       <h3 className="text-lg font-bold text-white">{req.fromUser.name}</h3>
@@ -151,11 +148,7 @@ function Requests({ requests, onUpdateRequestStatus }) {
                 className="bg-white/5 border border-white/10 rounded-3xl p-6 backdrop-blur-xl shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6 hover:border-purple-400/30 transition-all"
               >
                 <div className="flex items-start space-x-4">
-                  <img
-                    src={req.toUser.avatar}
-                    alt={req.toUser.name}
-                    className="w-14 h-14 rounded-2xl object-cover border border-white/20 shadow-md shrink-0"
-                  />
+                  <Avatar src={req.toUser.avatar} name={req.toUser.name} size="md" />
                   <div className="space-y-2">
                     <div className="flex items-center space-x-3">
                       <h3 className="text-lg font-bold text-white">To: {req.toUser.name}</h3>

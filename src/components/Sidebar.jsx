@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
+import Avatar from './Avatar';
 
 function Sidebar({ currentUser }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -137,15 +138,13 @@ function Sidebar({ currentUser }) {
         {/* Bottom Profile Preview Card (Helios Style) */}
         <NavLink
           to="/my-profile"
-          className="mt-auto bg-white/5 border border-white/10 rounded-2xl p-3.5 flex items-center space-x-3 hover:border-purple-400/40 transition-colors"
+          className="mt-auto bg-white/5 border border-white/10 rounded-2xl p-3.5 flex items-center space-x-3 hover:border-purple-400/40 transition-colors group"
         >
-          <img
-            src={currentUser?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=250'}
-            alt={currentUser?.name}
-            className="w-9 h-9 rounded-full object-cover border border-purple-400/40 shadow-sm"
-          />
+          <Avatar src={currentUser?.avatar} name={currentUser?.name || 'Rahul Sharma'} size="sm" />
           <div className="overflow-hidden">
-            <p className="text-xs font-semibold text-white truncate">{currentUser?.name || 'Rahul Sharma'}</p>
+            <p className="text-xs font-semibold text-white truncate group-hover:text-purple-300 transition-colors">
+              {currentUser?.name || 'Rahul Sharma'}
+            </p>
             <p className="text-[10px] text-purple-300 truncate">{currentUser?.role || 'Frontend Developer'}</p>
           </div>
         </NavLink>

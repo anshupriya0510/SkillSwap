@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Button from '../components/Button';
 import SkillBadge from '../components/SkillBadge';
+import Avatar from '../components/Avatar';
 
 function MyProfile({ currentUser, onSaveProfile }) {
   const [formData, setFormData] = useState({
@@ -8,6 +9,7 @@ function MyProfile({ currentUser, onSaveProfile }) {
     role: currentUser.role || '',
     location: currentUser.location || '',
     bio: currentUser.bio || '',
+    avatar: currentUser.avatar || '',
     skillsToTeachInput: currentUser.skillsToTeach ? currentUser.skillsToTeach.join(', ') : '',
     skillsToLearnInput: currentUser.skillsToLearn ? currentUser.skillsToLearn.join(', ') : '',
     experienceLevel: currentUser.experienceLevel || '',
@@ -19,6 +21,10 @@ function MyProfile({ currentUser, onSaveProfile }) {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleRemovePhoto = () => {
+    setFormData((prev) => ({ ...prev, avatar: '' }));
   };
 
   const handleSubmit = (e) => {
@@ -41,6 +47,7 @@ function MyProfile({ currentUser, onSaveProfile }) {
       role: formData.role,
       location: formData.location,
       bio: formData.bio,
+      avatar: formData.avatar,
       skillsToTeach,
       skillsToLearn,
       experienceLevel: formData.experienceLevel,
@@ -66,7 +73,7 @@ function MyProfile({ currentUser, onSaveProfile }) {
           My <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-300 to-pink-400">Profile & Settings</span>
         </h1>
         <p className="text-gray-300 text-sm max-w-xl">
-          Edit your public details, expertise, learning goals, and availability preferences.
+          Edit your public details, expertise, learning goals, and profile photo preferences.
         </p>
       </div>
 
@@ -76,7 +83,7 @@ function MyProfile({ currentUser, onSaveProfile }) {
             <svg className="w-6 h-6 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
-            <span className="text-sm font-semibold">Profile updated and saved to local storage!</span>
+            <span className="text-sm font-semibold">Profile updated and saved successfully!</span>
           </div>
         </div>
       )}
@@ -84,16 +91,63 @@ function MyProfile({ currentUser, onSaveProfile }) {
       {/* Main Profile Form */}
       <form onSubmit={handleSubmit} className="bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-xl shadow-2xl space-y-6">
         {/* Avatar & Header Preview */}
-        <div className="flex items-center space-x-5 pb-6 border-b border-white/10">
-          <img
-            src={currentUser.avatar}
-            alt={currentUser.name}
-            className="w-20 h-20 rounded-3xl object-cover border-2 border-purple-400/40 shadow-xl"
-          />
-          <div>
-            <h2 className="text-2xl font-bold text-white">{formData.name || 'Your Name'}</h2>
-            <p className="text-xs text-purple-300 font-medium">{formData.role || 'Your Title'}</p>
-            <p className="text-[11px] text-gray-400 mt-1">{formData.location || 'Your Location'}</p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-6 border-b border-white/10">
+          <div className="flex items-center space-x-5">
+            {/* Reusable Avatar Component */}
+            <Avatar src={formData.avatar} name={formData.name} size="lg" />
+
+            <div>
+              <h2 className="text-2xl font-bold text-white">{formData.name || 'Your Name'}</h2>
+              <p className="text-xs text-purple-300 font-medium">{formData.role || 'Your Title'}</p>
+              <p className="text-[11px] text-gray-400 mt-1">{formData.location || 'Your Location'}</p>
+            </div>
+          </div>
+
+          {/* Photo Removal Button */}
+          {formData.avatar ? (
+            <Button
+              variant="secondary"
+              type="button"
+              onClick={handleRemovePhoto}
+              className="text-xs text-rose-300 border-rose-500/30 hover:bg-rose-500/10 shrink-0"
+              icon={
+                <svg className="w-4 h-4 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              }
+            >
+              Remove Photo
+            </Button>
+          ) : (
+            <span className="text-xs text-purple-300 bg-purple-500/10 px-3 py-1.5 rounded-full border border-purple-500/20 font-medium">
+              Using Initials Avatar
+            </span>
+          )}
+        </div>
+
+        {/* Profile Photo URL Input */}
+        <div className="space-y-2">
+          <label className="text-xs font-semibold text-gray-300 uppercase tracking-wider block">
+            Profile Photo URL (Optional)
+          </label>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              name="avatar"
+              value={formData.avatar}
+              onChange={handleChange}
+              placeholder="Paste image link URL (e.g. https://images.unsplash.com/...) or leave empty"
+              className="flex-1 bg-[#181320] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-purple-400"
+            />
+            {formData.avatar && (
+              <button
+                type="button"
+                onClick={handleRemovePhoto}
+                className="px-4 py-3 bg-white/5 border border-white/10 rounded-2xl text-xs text-gray-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+              >
+                Clear
+              </button>
+            )}
           </div>
         </div>
 
@@ -177,7 +231,6 @@ function MyProfile({ currentUser, onSaveProfile }) {
               placeholder="e.g. React, JavaScript, Git, Tailwind"
               className="w-full bg-[#181320] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-purple-400"
             />
-            {/* Live Tag Preview */}
             <div className="flex flex-wrap gap-2 pt-1">
               {formData.skillsToTeachInput.split(',').map((skill, idx) => (
                 skill.trim() && <SkillBadge key={idx} name={skill.trim()} size="small" active={true} />
@@ -197,7 +250,6 @@ function MyProfile({ currentUser, onSaveProfile }) {
               placeholder="e.g. AWS, Docker, Python, UI/UX"
               className="w-full bg-[#181320] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-purple-400"
             />
-            {/* Live Tag Preview */}
             <div className="flex flex-wrap gap-2 pt-1">
               {formData.skillsToLearnInput.split(',').map((skill, idx) => (
                 skill.trim() && <SkillBadge key={idx} name={skill.trim()} size="small" active={false} />

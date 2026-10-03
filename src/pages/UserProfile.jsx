@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from 'react';
 import SkillBadge from '../components/SkillBadge';
 import Button from '../components/Button';
+import Avatar from '../components/Avatar';
 
 function UserProfile({ users, onRequestExchange }) {
   const { id } = useParams();
@@ -43,11 +44,7 @@ function UserProfile({ users, onRequestExchange }) {
 
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-center space-x-5">
-            <img
-              src={user.avatar}
-              alt={user.name}
-              className="w-20 h-20 md:w-24 md:h-24 rounded-3xl object-cover border-2 border-white/20 shadow-xl"
-            />
+            <Avatar src={user.avatar} name={user.name} size="lg" />
             <div className="space-y-1">
               <div className="inline-flex items-center space-x-2 bg-purple-500/20 px-3 py-0.5 rounded-full border border-purple-500/30 text-xs font-semibold text-purple-300">
                 <span>Verified Mentor</span>

@@ -1,6 +1,7 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react';
 import SkillBadge from './SkillBadge';
 import Button from './Button';
+import Avatar from './Avatar';
 
 function UserCard({ user, onRequestExchange }) {
   const navigate = useNavigate();
@@ -11,11 +12,7 @@ function UserCard({ user, onRequestExchange }) {
         {/* Profile Header */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center space-x-3.5">
-            <img
-              src={user.avatar}
-              alt={user.name}
-              className="w-13 h-13 rounded-2xl object-cover border border-white/20 shadow-md group-hover:scale-105 transition-transform"
-            />
+            <Avatar src={user.avatar} name={user.name} size="md" />
             <div>
               <h3 className="text-lg font-bold text-white tracking-tight group-hover:text-purple-300 transition-colors">
                 {user.name}
