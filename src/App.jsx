@@ -12,8 +12,8 @@ import { initialUsers, currentUser as defaultCurrentUser } from './data/users';
 import { initialRequests } from './data/requests';
 
 function App() {
-  // Persistent state management using localStorage + React useState
-  const [users] = useState(() => {
+  // State initialization with local memory fallback
+  const [users, setUsers] = useState(() => {
     const saved = localStorage.getItem('skillswap_users');
     return saved ? JSON.parse(saved) : initialUsers;
   });
@@ -28,11 +28,44 @@ function App() {
     return saved ? JSON.parse(saved) : initialRequests;
   });
 
-  // Exchange Modal State
+  // Modal State
   const [modalTargetUser, setModalTargetUser] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Sync persistent changes to localStorage
+  // MERN Backend Data Fetching via Express API
+  useEffect(() => {
+    const fetchBackendData = async () => {
+      try {
+        const usersRes = await fetch('/api/users');
+        if (usersRes.ok) {
+          const fetchedUsers = await usersRes.json();
+          if (fetchedUsers.length > 0) setUsers(fetchedUsers);
+        }
+
+        const meRes = await fetch('/api/users/me');
+        if (meRes.ok) {
+          const fetchedMe = await meRes.json();
+          if (fetchedMe) setCurrentUser(fetchedMe);
+        }
+
+        const reqRes = await fetch('/api/requests');
+        if (reqRes.ok) {
+          const fetchedReqs = await reqRes.json();
+          if (fetchedReqs.length > 0) setRequests(fetchedReqs);
+        }
+      } catch (err) {
+        console.info('Running with client state / localStorage synchronization.');
+      }
+    };
+
+    fetchBackendData();
+  }, []);
+
+  // Sync state to localStorage
+  useEffect(() => {
+    localStorage.setItem('skillswap_users', JSON.stringify(users));
+  }, [users]);
+
   useEffect(() => {
     localStorage.setItem('skillswap_current_user', JSON.stringify(currentUser));
   }, [currentUser]);
@@ -41,27 +74,56 @@ function App() {
     localStorage.setItem('skillswap_requests', JSON.stringify(requests));
   }, [requests]);
 
-  // Open exchange modal for target user
   const handleOpenExchangeModal = (targetUser) => {
     setModalTargetUser(targetUser);
     setIsModalOpen(true);
   };
 
-  // Add new exchange request
-  const handleSendRequest = (newRequest) => {
+  // Add new exchange request (MERN API + Local State)
+  const handleSendRequest = async (newRequest) => {
     setRequests((prev) => [newRequest, ...prev]);
+
+    try {
+      await fetch('/api/requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newRequest),
+      });
+    } catch (err) {
+      console.warn('Backend API request saved to local state fallback');
+    }
   };
 
-  // Update status (Accepted/Rejected) of a request
-  const handleUpdateRequestStatus = (requestId, newStatus) => {
+  // Update status (Accepted/Rejected) of a request (MERN API + Local State)
+  const handleUpdateRequestStatus = async (requestId, newStatus) => {
     setRequests((prev) =>
       prev.map((req) => (req.id === requestId ? { ...req, status: newStatus } : req))
     );
+
+    try {
+      await fetch(`/api/requests/${requestId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      });
+    } catch (err) {
+      console.warn('Backend API update saved to local state fallback');
+    }
   };
 
-  // Save updated current user profile
-  const handleSaveProfile = (updatedProfile) => {
+  // Save updated current user profile (MERN API + Local State)
+  const handleSaveProfile = async (updatedProfile) => {
     setCurrentUser(updatedProfile);
+
+    try {
+      await fetch('/api/users/me', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedProfile),
+      });
+    } catch (err) {
+      console.warn('Backend API profile update saved to local state fallback');
+    }
   };
 
   return (
@@ -70,7 +132,7 @@ function App() {
         {/* Navigation Sidebar */}
         <Sidebar currentUser={currentUser} />
 
-        {/* Viewport Router Content */}
+        {/* Main Content Area */}
         <main className="flex-1 md:ml-64 p-4 md:p-8 min-h-screen transition-all duration-300">
           <Routes>
             <Route path="/" element={<Home />} />
