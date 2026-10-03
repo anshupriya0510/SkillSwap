@@ -94,18 +94,31 @@ function App() {
     }
   };
 
-  // Update status (Accepted/Rejected) of a request (MERN API + Local State)
-  const handleUpdateRequestStatus = async (requestId, newStatus) => {
+  // Update request status using specific action endpoints (accept / reject / cancel)
+  // actionType: 'accept' | 'reject' | 'cancel'
+  const handleUpdateRequestStatus = async (requestId, actionType) => {
+    // Map action string to the display status for immediate local state update
+    const statusMap = { accept: 'Accepted', reject: 'Rejected', cancel: 'Cancelled' };
+    const newStatus = statusMap[actionType];
+
+    // Optimistic update — update UI immediately before server confirms
     setRequests((prev) =>
       prev.map((req) => (req.id === requestId ? { ...req, status: newStatus } : req))
     );
 
     try {
-      await fetch(`/api/requests/${requestId}`, {
+      const res = await fetch(`/api/requests/${requestId}/${actionType}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus }),
       });
+      if (!res.ok) {
+        const err = await res.json();
+        console.warn('Server rejected action:', err.message);
+        // Roll back optimistic update if server rejected it
+        setRequests((prev) =>
+          prev.map((req) => (req.id === requestId ? { ...req, status: 'Pending' } : req))
+        );
+      }
     } catch (err) {
       console.warn('Backend API update saved to local state fallback');
     }
