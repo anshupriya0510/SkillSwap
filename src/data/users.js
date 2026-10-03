@@ -42,6 +42,8 @@ export const currentUser = {
   experienceLevel: 'Intermediate (3 years)',
   availability: '8-10 hrs/week (Evenings & Weekends)',
   email: 'rahul.sharma@example.com',
+  // Contact info — only revealed after an accepted request
+  contact: { method: 'WhatsApp', value: '9876543210' },
 };
 
 export const initialUsers = [
@@ -56,6 +58,7 @@ export const initialUsers = [
     skillsToLearn: ['UI/UX', 'React', 'Figma'],
     experienceLevel: 'Advanced (6+ yrs)',
     availability: '5 hrs/week (Weekends)',
+    contact: { method: 'LinkedIn', value: 'https://linkedin.com/in/priya-patel-cloud' },
   },
   {
     id: 'user-2',
@@ -68,6 +71,7 @@ export const initialUsers = [
     skillsToLearn: ['React', 'JavaScript', 'UI/UX'],
     experienceLevel: 'Intermediate (4 yrs)',
     availability: '6 hrs/week (Flexible)',
+    contact: { method: 'Email', value: 'aarav.mehta@example.com' },
   },
   {
     id: 'user-3',
@@ -80,6 +84,7 @@ export const initialUsers = [
     skillsToLearn: ['AWS', 'Docker', 'Kubernetes'],
     experienceLevel: 'Advanced (5 yrs)',
     availability: '4 hrs/week (Weekdays)',
+    contact: { method: 'WhatsApp', value: '9123456780' },
   },
   {
     id: 'user-4',
@@ -92,6 +97,7 @@ export const initialUsers = [
     skillsToLearn: ['React', 'JavaScript', 'Git'],
     experienceLevel: 'Intermediate (3 yrs)',
     availability: '10 hrs/week (Evenings)',
+    contact: { method: 'LinkedIn', value: 'https://linkedin.com/in/rohan-gupta-design' },
   },
   {
     id: 'user-5',
@@ -104,6 +110,7 @@ export const initialUsers = [
     skillsToLearn: ['Python', 'AWS', 'Node.js'],
     experienceLevel: 'Expert (7 yrs)',
     availability: '5 hrs/week (Weekends)',
+    contact: { method: 'Email', value: 'devansh.nair@example.com' },
   },
   {
     id: 'user-6',
@@ -116,6 +123,7 @@ export const initialUsers = [
     skillsToLearn: ['Node.js', 'Java', 'SQL'],
     experienceLevel: 'Intermediate (2 yrs)',
     availability: '8 hrs/week (Weekdays)',
+    contact: { method: 'WhatsApp', value: '9988776655' },
   },
   {
     id: 'user-7',
@@ -128,6 +136,7 @@ export const initialUsers = [
     skillsToLearn: ['Python', 'Data Science', 'SQL'],
     experienceLevel: 'Advanced (5 yrs)',
     availability: '6 hrs/week (Evenings)',
+    contact: { method: 'LinkedIn', value: 'https://linkedin.com/in/vikram-singh-cloud' },
   },
   {
     id: 'user-8',
@@ -140,5 +149,8 @@ export const initialUsers = [
     skillsToLearn: ['UI/UX', 'Figma', 'React'],
     experienceLevel: 'Beginner/Intermediate (1.5 yrs)',
     availability: '7 hrs/week (Weekends)',
+    contact: { method: 'Email', value: 'meera.iyer@example.com' },
   },
 ];
+
+

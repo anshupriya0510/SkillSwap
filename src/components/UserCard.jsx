@@ -1,4 +1,4 @@
-import { useNavigate } from 'react';
+import { useNavigate } from 'react-router-dom';
 import SkillBadge from './SkillBadge';
 import Button from './Button';
 import Avatar from './Avatar';

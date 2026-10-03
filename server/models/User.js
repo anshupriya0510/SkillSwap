@@ -13,6 +13,17 @@ const userSchema = new mongoose.Schema(
     experienceLevel: { type: String, default: 'Intermediate' },
     availability: { type: String, default: 'Flexible' },
     isCurrentUser: { type: Boolean, default: false },
+
+    // Contact details — NEVER returned by API unless a mutual accepted/scheduled/completed
+    // request exists between the viewer and this user (enforced in route layer)
+    contact: {
+      method: {
+        type: String,
+        enum: ['Email', 'WhatsApp', 'LinkedIn', ''],
+        default: '',
+      },
+      value: { type: String, default: '' },
+    },
   },
   { timestamps: true }
 );

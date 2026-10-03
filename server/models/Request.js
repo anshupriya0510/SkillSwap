@@ -18,11 +18,20 @@ const requestSchema = new mongoose.Schema(
     mySkillToTeach: { type: String, required: true },
     theirSkillToTeach: { type: String, required: true },
     message: { type: String, default: '' },
+
+    // Full lifecycle: pending → accepted → scheduled → completed
+    //                         └→ rejected   (receiver only)
+    //             pending → cancelled       (sender only)
     status: {
       type: String,
-      enum: ['Pending', 'Accepted', 'Rejected'],
+      enum: ['Pending', 'Accepted', 'Rejected', 'Cancelled', 'Scheduled', 'Completed'],
       default: 'Pending',
     },
+
+    // Set when status moves to Scheduled
+    sessionLink: { type: String, default: '' },
+    sessionTime: { type: String, default: '' },
+
     createdAt: { type: String },
     direction: { type: String, default: 'sent' },
   },

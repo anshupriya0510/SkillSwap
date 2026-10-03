@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import SkillBadge from '../components/SkillBadge';
 import Button from '../components/Button';
 import Avatar from '../components/Avatar';
