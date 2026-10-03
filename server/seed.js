@@ -10,6 +10,7 @@
  */
 
 import mongoose from 'mongoose';
+import dns from 'dns';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -25,6 +26,15 @@ if (process.env.SEED_CONFIRM !== 'yes') {
 }
 
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/skillswap';
+
+if (MONGO_URI.includes('mongodb+srv://')) {
+  try {
+    dns.setServers(['8.8.8.8', '8.8.4.4']);
+  } catch {
+    // Ignore if not allowed
+  }
+}
+
 
 
 // ── Inline schemas (no circular imports) ──────────────────────────────────────
