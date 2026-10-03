@@ -14,7 +14,11 @@ function MyProfile({ currentUser, onSaveProfile }) {
     skillsToLearnInput: currentUser.skillsToLearn ? currentUser.skillsToLearn.join(', ') : '',
     experienceLevel: currentUser.experienceLevel || '',
     availability: currentUser.availability || '',
+    contactMethod: currentUser.contact?.method || '',
+    contactValue: currentUser.contact?.value || '',
   });
+
+  const [contactError, setContactError] = useState('');
 
   const [savedSuccess, setSavedSuccess] = useState(false);
 
@@ -41,6 +45,24 @@ function MyProfile({ currentUser, onSaveProfile }) {
       .map((s) => s.trim())
       .filter((s) => s.length > 0);
 
+    // Validate contact value format
+    let contactErr = '';
+    if (formData.contactMethod && formData.contactValue) {
+      const v = formData.contactValue.trim();
+      if (formData.contactMethod === 'Email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) {
+        contactErr = 'Enter a valid email address.';
+      } else if (formData.contactMethod === 'WhatsApp' && !/^\d{7,15}$/.test(v.replace(/[\s+()-]/g, ''))) {
+        contactErr = 'Enter a valid WhatsApp number (digits only, 7-15 chars).';
+      } else if (formData.contactMethod === 'LinkedIn' && !/https?:\/\//i.test(v)) {
+        contactErr = 'Enter a full LinkedIn URL starting with https://';
+      }
+    }
+    if (contactErr) {
+      setContactError(contactErr);
+      return;
+    }
+    setContactError('');
+
     const updatedProfile = {
       ...currentUser,
       name: formData.name,
@@ -52,6 +74,10 @@ function MyProfile({ currentUser, onSaveProfile }) {
       skillsToLearn,
       experienceLevel: formData.experienceLevel,
       availability: formData.availability,
+      contact: {
+        method: formData.contactMethod || '',
+        value: formData.contactValue.trim() || '',
+      },
     };
 
     onSaveProfile(updatedProfile);
@@ -269,6 +295,61 @@ function MyProfile({ currentUser, onSaveProfile }) {
             placeholder="e.g. 8-10 hrs/week (Evenings & Weekends)"
             className="w-full bg-[#181320] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-purple-400"
           />
+        </div>
+
+        {/* ── Contact Details (private) ──────────────────────────────────────── */}
+        <div className="space-y-4 pt-4 border-t border-white/10">
+          <div>
+            <label className="text-xs font-semibold text-purple-300 uppercase tracking-wider block mb-1">
+              🔒 Private Contact Details
+            </label>
+            <p className="text-xs text-gray-500">
+              Only shown to people <strong className="text-gray-400">after a request between you is accepted</strong>. Never visible publicly.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-gray-300 uppercase tracking-wider block">Contact Method</label>
+              <select
+                name="contactMethod"
+                value={formData.contactMethod}
+                onChange={handleChange}
+                className="w-full bg-[#181320] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-purple-400 cursor-pointer"
+              >
+                <option value="">-- Select --</option>
+                <option value="Email">Email</option>
+                <option value="WhatsApp">WhatsApp</option>
+                <option value="LinkedIn">LinkedIn</option>
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-gray-300 uppercase tracking-wider block">
+                {formData.contactMethod === 'Email' && 'Email Address'}
+                {formData.contactMethod === 'WhatsApp' && 'WhatsApp Number (with country code)'}
+                {formData.contactMethod === 'LinkedIn' && 'LinkedIn Profile URL'}
+                {!formData.contactMethod && 'Contact Value'}
+              </label>
+              <input
+                type="text"
+                name="contactValue"
+                value={formData.contactValue}
+                onChange={handleChange}
+                placeholder={
+                  formData.contactMethod === 'Email' ? 'you@example.com' :
+                  formData.contactMethod === 'WhatsApp' ? '919876543210' :
+                  formData.contactMethod === 'LinkedIn' ? 'https://linkedin.com/in/yourname' :
+                  'Select a method first'
+                }
+                disabled={!formData.contactMethod}
+                className="w-full bg-[#181320] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-purple-400 disabled:opacity-40"
+              />
+              {contactError && (
+                <p className="text-xs text-rose-400 mt-1">{contactError}</p>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Submit Button */}

@@ -12,7 +12,7 @@ import { initialUsers, currentUser as defaultCurrentUser } from './data/users';
 import { initialRequests } from './data/requests';
 
 function App() {
-  // State initialization with local memory fallback
+  // ── State ──────────────────────────────────────────────────────────────────
   const [users, setUsers] = useState(() => {
     const saved = localStorage.getItem('skillswap_users');
     return saved ? JSON.parse(saved) : initialUsers;
@@ -28,124 +28,150 @@ function App() {
     return saved ? JSON.parse(saved) : initialRequests;
   });
 
-  // Modal State
   const [modalTargetUser, setModalTargetUser] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // MERN Backend Data Fetching via Express API
+  // ── Fetch from backend on mount ────────────────────────────────────────────
   useEffect(() => {
     const fetchBackendData = async () => {
       try {
-        const usersRes = await fetch('/api/users');
+        const [usersRes, meRes, reqRes] = await Promise.all([
+          fetch('/api/users'),
+          fetch('/api/users/me'),
+          fetch('/api/requests'),
+        ]);
+
         if (usersRes.ok) {
-          const fetchedUsers = await usersRes.json();
-          if (fetchedUsers.length > 0) setUsers(fetchedUsers);
+          const data = await usersRes.json();
+          if (data.length > 0) setUsers(data);
         }
-
-        const meRes = await fetch('/api/users/me');
         if (meRes.ok) {
-          const fetchedMe = await meRes.json();
-          if (fetchedMe) setCurrentUser(fetchedMe);
+          const data = await meRes.json();
+          if (data) setCurrentUser(data);
         }
-
-        const reqRes = await fetch('/api/requests');
         if (reqRes.ok) {
-          const fetchedReqs = await reqRes.json();
-          if (fetchedReqs.length > 0) setRequests(fetchedReqs);
+          const data = await reqRes.json();
+          if (data.length > 0) setRequests(data);
         }
-      } catch (err) {
-        console.info('Running with client state / localStorage synchronization.');
+      } catch {
+        console.info('Backend unavailable — using local state.');
       }
     };
-
     fetchBackendData();
   }, []);
 
-  // Sync state to localStorage
-  useEffect(() => {
-    localStorage.setItem('skillswap_users', JSON.stringify(users));
-  }, [users]);
+  // ── Sync to localStorage ───────────────────────────────────────────────────
+  useEffect(() => { localStorage.setItem('skillswap_users', JSON.stringify(users)); }, [users]);
+  useEffect(() => { localStorage.setItem('skillswap_current_user', JSON.stringify(currentUser)); }, [currentUser]);
+  useEffect(() => { localStorage.setItem('skillswap_requests', JSON.stringify(requests)); }, [requests]);
 
-  useEffect(() => {
-    localStorage.setItem('skillswap_current_user', JSON.stringify(currentUser));
-  }, [currentUser]);
-
-  useEffect(() => {
-    localStorage.setItem('skillswap_requests', JSON.stringify(requests));
-  }, [requests]);
-
+  // ── Handlers ───────────────────────────────────────────────────────────────
   const handleOpenExchangeModal = (targetUser) => {
     setModalTargetUser(targetUser);
     setIsModalOpen(true);
   };
 
-  // Add new exchange request (MERN API + Local State)
+  // Create a new skill exchange request
   const handleSendRequest = async (newRequest) => {
     setRequests((prev) => [newRequest, ...prev]);
-
     try {
-      await fetch('/api/requests', {
+      const res = await fetch('/api/requests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newRequest),
       });
-    } catch (err) {
-      console.warn('Backend API request saved to local state fallback');
+      if (!res.ok) {
+        const err = await res.json();
+        console.warn('POST /api/requests failed:', err.message);
+      }
+    } catch {
+      console.warn('Backend unavailable — request saved locally.');
     }
   };
 
-  // Update request status using specific action endpoints (accept / reject / cancel)
-  // actionType: 'accept' | 'reject' | 'cancel'
-  const handleUpdateRequestStatus = async (requestId, actionType) => {
-    // Map action string to the display status for immediate local state update
-    const statusMap = { accept: 'Accepted', reject: 'Rejected', cancel: 'Cancelled' };
+  // Unified request action handler.
+  // actionType: 'accept' | 'reject' | 'cancel' | 'schedule' | 'complete'
+  // extra:      { sessionLink, sessionTime } for 'schedule', unused otherwise
+  // Returns false if server rejected the action (so Requests.jsx can show error toast).
+  const handleUpdateRequestStatus = async (requestId, actionType, extra = {}) => {
+    // Optimistic status map
+    const statusMap = {
+      accept:   'Accepted',
+      reject:   'Rejected',
+      cancel:   'Cancelled',
+      schedule: 'Scheduled',
+      complete: 'Completed',
+    };
     const newStatus = statusMap[actionType];
 
-    // Optimistic update — update UI immediately before server confirms
-    setRequests((prev) =>
-      prev.map((req) => (req.id === requestId ? { ...req, status: newStatus } : req))
-    );
+    // Snapshot original request BEFORE optimistic update (for rollback)
+    let originalReq = null;
+    setRequests((prev) => {
+      const found = prev.find((r) => r.id === requestId);
+      if (found) originalReq = { ...found };
+      return prev.map((req) =>
+        req.id === requestId
+          ? {
+              ...req,
+              status: newStatus,
+              ...(actionType === 'schedule'
+                ? { sessionLink: extra.sessionLink, sessionTime: extra.sessionTime }
+                : {}),
+            }
+          : req
+      );
+    });
 
     try {
       const res = await fetch(`/api/requests/${requestId}/${actionType}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
+        body: actionType === 'schedule' ? JSON.stringify(extra) : undefined,
       });
+
       if (!res.ok) {
         const err = await res.json();
-        console.warn('Server rejected action:', err.message);
-        // Roll back optimistic update if server rejected it
+        console.warn(`Server rejected '${actionType}':`, err.message);
+        // Roll back optimistic update — restore exact original state
+        if (originalReq) {
+          setRequests((prev) =>
+            prev.map((req) => (req.id === requestId ? originalReq : req))
+          );
+        }
+        return false; // signal error to Requests.jsx
+      }
+
+      // On success, refresh from server to get otherUserContact populated
+      const { request: updated } = await res.json();
+      if (updated) {
         setRequests((prev) =>
-          prev.map((req) => (req.id === requestId ? { ...req, status: 'Pending' } : req))
+          prev.map((req) => (req.id === requestId ? { ...req, ...updated } : req))
         );
       }
-    } catch (err) {
-      console.warn('Backend API update saved to local state fallback');
+    } catch {
+      console.warn('Backend unavailable — action saved locally.');
     }
   };
 
-  // Save updated current user profile (MERN API + Local State)
+  // Save current user profile
   const handleSaveProfile = async (updatedProfile) => {
     setCurrentUser(updatedProfile);
-
     try {
       await fetch('/api/users/me', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedProfile),
       });
-    } catch (err) {
-      console.warn('Backend API profile update saved to local state fallback');
+    } catch {
+      console.warn('Backend unavailable — profile saved locally.');
     }
   };
 
   return (
     <Router>
       <div className="min-h-screen bg-[#0b090e] text-gray-100 helios-glow-bg flex flex-col md:flex-row font-sans selection:bg-purple-500 selection:text-white">
-        {/* Navigation Sidebar */}
         <Sidebar currentUser={currentUser} />
 
-        {/* Main Content Area */}
         <main className="flex-1 md:ml-64 p-4 md:p-8 min-h-screen transition-all duration-300">
           <Routes>
             <Route path="/" element={<Home />} />
@@ -173,7 +199,6 @@ function App() {
           </Routes>
         </main>
 
-        {/* Global Skill Exchange Modal */}
         <ExchangeModal
           targetUser={modalTargetUser}
           currentUser={currentUser}
