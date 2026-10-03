@@ -7,6 +7,7 @@ import UserProfile from './pages/UserProfile';
 import MyProfile from './pages/MyProfile';
 import Requests from './pages/Requests';
 import ExchangeModal from './components/ExchangeModal';
+import { API_BASE } from './lib/api';
 
 import { initialUsers, currentUser as defaultCurrentUser } from './data/users';
 import { initialRequests } from './data/requests';
@@ -36,9 +37,9 @@ function App() {
     const fetchBackendData = async () => {
       try {
         const [usersRes, meRes, reqRes] = await Promise.all([
-          fetch('/api/users'),
-          fetch('/api/users/me'),
-          fetch('/api/requests'),
+          fetch(`${API_BASE}/users`),
+          fetch(`${API_BASE}/users/me`),
+          fetch(`${API_BASE}/requests`),
         ]);
 
         if (usersRes.ok) {
@@ -75,7 +76,7 @@ function App() {
   const handleSendRequest = async (newRequest) => {
     setRequests((prev) => [newRequest, ...prev]);
     try {
-      const res = await fetch('/api/requests', {
+      const res = await fetch(`${API_BASE}/requests`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newRequest),
@@ -123,7 +124,7 @@ function App() {
     });
 
     try {
-      const res = await fetch(`/api/requests/${requestId}/${actionType}`, {
+      const res = await fetch(`${API_BASE}/requests/${requestId}/${actionType}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: actionType === 'schedule' ? JSON.stringify(extra) : undefined,
@@ -157,7 +158,7 @@ function App() {
   const handleSaveProfile = async (updatedProfile) => {
     setCurrentUser(updatedProfile);
     try {
-      await fetch('/api/users/me', {
+      await fetch(`${API_BASE}/users/me`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedProfile),

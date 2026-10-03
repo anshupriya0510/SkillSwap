@@ -111,22 +111,101 @@ git push -u origin main
 
 ---
 
-## 🌐 Deployment to Vercel (Phase 14)
+## 🌐 Deployment Guide (MongoDB Atlas + Render + Vercel)
 
-1. Push your repository to GitHub.
-2. Go to [Vercel Dashboard](https://vercel.com/) and click **Add New Project**.
-3. Import your `skillswap` repository from GitHub.
-4. Leave build settings as default:
-   - **Framework Preset:** Vite
-   - **Build Command:** `npm run build`
-   - **Output Directory:** `dist`
-5. Click **Deploy**. Vercel will automatically host your live application! The included `vercel.json` ensures all React Router routes work perfectly on page refresh.
+> **Note:** The project is a monorepo. The frontend (`src/`, `vite.config.js`) and backend (`server/`) live in the same repository root. Deploy them separately as described below.
 
 ---
 
-## 🔮 Future Enhancements (Phase 15 Suggestion)
+### Step 1 — MongoDB Atlas
+
+1. Create a free cluster at [cloud.mongodb.com](https://cloud.mongodb.com).
+2. **Database Access** → Add a DB user (e.g. `skillswap-admin`). Save the password.
+3. **Network Access** → Add IP `0.0.0.0/0` (allow all — required for Render).
+4. **Connect** → Drivers → copy the connection string and replace `<password>` and `<dbname>`:
+   ```
+   mongodb+srv://skillswap-admin:<password>@cluster0.xxxxx.mongodb.net/skillswap?retryWrites=true&w=majority
+   ```
+   > ⚠️ URL-encode special characters in the password: `@` → `%40`, `#` → `%23`, `!` → `%21`
+
+---
+
+### Step 2 — Render (Backend)
+
+1. Go to [render.com](https://render.com) → New → **Web Service**.
+2. Connect your GitHub repo.
+3. Set the following:
+   | Setting | Value |
+   |---|---|
+   | **Root Directory** | *(leave blank — project root)* |
+   | **Runtime** | Node |
+   | **Build Command** | `npm install` |
+   | **Start Command** | `node server/server.js` |
+4. Add **Environment Variables**:
+   | Key | Value |
+   |---|---|
+   | `MONGO_URI` | Your Atlas connection string |
+   | `NODE_ENV` | `production` |
+   | `CLIENT_URL` | *(fill in after Vercel deploy, Step 3)* |
+5. Click **Deploy**. Copy the service URL: `https://skillswap-xxxx.onrender.com`
+
+> ⚠️ **Render free tier sleeps after 15 min of inactivity. The first request after sleep takes 30–60 seconds.**
+
+---
+
+### Step 3 — Vercel (Frontend)
+
+1. Go to [vercel.com](https://vercel.com) → New Project → import your GitHub repo.
+2. Set the following:
+   | Setting | Value |
+   |---|---|
+   | **Framework Preset** | Vite |
+   | **Root Directory** | *(leave blank — project root)* |
+   | **Build Command** | `npm run build` |
+   | **Output Directory** | `dist` |
+3. Add **Environment Variable**:
+   | Key | Value |
+   |---|---|
+   | `VITE_API_URL` | `https://skillswap-xxxx.onrender.com/api` |
+4. Click **Deploy**. Copy your Vercel URL: `https://skillswap-xxxx.vercel.app`
+
+---
+
+### Step 4 — Wire frontend URL back to Render
+
+In your Render service → **Environment** → set:
+```
+CLIENT_URL = https://skillswap-xxxx.vercel.app
+```
+Then click **Manual Deploy → Deploy latest commit** to pick up the CORS change.
+
+---
+
+### Step 5 — Seed the production database (optional)
+
+```bash
+SEED_CONFIRM=yes MONGO_URI="mongodb+srv://..." node server/seed.js
+```
+> ⚠️ This **drops and recreates** all users and requests. Only run on a fresh DB.
+
+---
+
+### 6-Point Live Test
+
+| # | Test | Expected |
+|---|---|---|
+| 1 | `GET https://your-render-url.onrender.com/api/health` | `{"status":"ok"}` |
+| 2 | Open the Vercel URL — community cards load | Users visible in Discover |
+| 3 | Click a user card → **Request Exchange** | Modal opens, form works |
+| 4 | Submit request → go to **Requests** tab → Sent | New card with Pending badge |
+| 5 | Refresh — request persists in MongoDB | Card still there after reload |
+| 6 | Accept a pending received request | 🎉 panel + contact details revealed |
+
+---
+
+## 🔮 Future Enhancements
 
 - **Firebase Authentication:** Sign up/Login with Google or Email/Password.
-- **Cloud Firestore Database:** Store user profiles and exchange requests in a real-time cloud database.
-- **Firebase Storage:** Allow users to upload custom profile picture avatars.
+- **Cloud Firestore Database:** Real-time cloud data sync.
+- **Firebase Storage:** Custom profile picture upload.
 - **Real-Time Chat:** 1-on-1 messaging between accepted skill partners.

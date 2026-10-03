@@ -13,7 +13,19 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 dotenv.config();
 
+// ── Safety guard ──────────────────────────────────────────────────────────────
+// Prevents accidental wipe of a production database.
+// Run as: SEED_CONFIRM=yes node server/seed.js
+// Or:     SEED_CONFIRM=yes npm run seed
+if (process.env.SEED_CONFIRM !== 'yes') {
+  console.error('❌  Safety guard triggered.');
+  console.error('    This script DROPS all users and requests before reseeding.');
+  console.error('    To confirm, run:  SEED_CONFIRM=yes node server/seed.js');
+  process.exit(1);
+}
+
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/skillswap';
+
 
 // ── Inline schemas (no circular imports) ──────────────────────────────────────
 const userSchema = new mongoose.Schema(
